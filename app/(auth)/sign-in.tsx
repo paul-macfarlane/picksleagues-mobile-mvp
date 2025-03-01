@@ -52,9 +52,7 @@ export default function SignInScreen() {
             </Button>
 
             {signInError && (
-              <Text className="text-sm text-destructive-foreground">
-                {signInError}
-              </Text>
+              <Text className="text-sm text-destructive">{signInError}</Text>
             )}
           </View>
         </View>

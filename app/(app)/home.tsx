@@ -21,7 +21,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-1 flex flex-col justify-center items-center p-4 gap-4">
-        <Text className="text-xl font-semibold text-primary">
+        <Text className="text-xl font-semibold text-foreground">
           Welcome to Picks Leagues!
         </Text>
         <Button onPress={onSignOut} disabled={isSigningOut}>
@@ -29,9 +29,7 @@ export default function HomeScreen() {
         </Button>
 
         {signOutError && (
-          <Text className="text-sm text-destructive-foreground">
-            {signOutError}
-          </Text>
+          <Text className="text-sm text-destructive">{signOutError}</Text>
         )}
       </View>
     </SafeAreaView>
