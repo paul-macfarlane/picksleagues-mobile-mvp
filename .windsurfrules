@@ -1,0 +1,4 @@
+1. This is a react native app using expo and nativewind
+2. Use components from `components` folder when possible
+3. Use flex flex-col gap-{value} instead of space-y-{value} because space-y does not apply on native devices
+4. Use flex/flex-col and gaps instead of individual margins to space elements
