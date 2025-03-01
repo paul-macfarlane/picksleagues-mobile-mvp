@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Text } from "~/components/ui/text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { ProfileFormSkeleton } from "~/components/forms/profile-form-skeleton";
 
 export default function ProfileScreen() {
   const {
@@ -35,13 +36,14 @@ export default function ProfileScreen() {
     });
   };
 
-  // todo add loading state using ~/components/ui/skeleton
-  if (isFetching) return null;
-
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-1 bg-background p-4">
-        {fetchError || !profile ? (
+        {isFetching ? (
+          <View className="max-w-sm mx-auto w-full">
+            <ProfileFormSkeleton />
+          </View>
+        ) : fetchError || !profile ? (
           <Text className="text-destructive text-lg text-center">
             Failed to fetch profile. Please try again later.
           </Text>
