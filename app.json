@@ -35,6 +35,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a3ae4526-65c3-4f71-8857-83473ca3c995"
+      }
+    },
+    "owner": "paul-macfarlane"
   }
 }
