@@ -41,10 +41,6 @@ type ProfileState = {
   isUpdating: boolean;
   updateError: string | null;
   updateProfile: UpdateProfileFunction;
-
-  isCheckingUsername: boolean;
-  checkUsernameError: string | null;
-  checkUsernameAvailable: CheckUsernameAvailabilityFunction;
 };
 
 const mockOAuthProfile = {
@@ -89,24 +85,6 @@ export const useProfileStore = create<ProfileState>((set) => ({
     } finally {
       set({ isUpdating: false });
       return { error };
-    }
-  },
-
-  isCheckingUsername: false,
-  checkUsernameError: null,
-  checkUsernameAvailable: async (username: string) => {
-    let available = false;
-    let error: string | null = null;
-    set({ isCheckingUsername: true, checkUsernameError: null });
-    try {
-      available = !["taken", "admin", "test"].includes(username.toLowerCase());
-      set({ checkUsernameError: null });
-    } catch (e) {
-      error = "Failed to check username";
-      set({ checkUsernameError: error });
-    } finally {
-      set({ isCheckingUsername: false });
-      return { available, error };
     }
   },
 }));

@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       isNewUser = true;
-      // todo temporarily setting this to always be a new user when signed in with google
+      // TODO temporarily setting this to always be a new user when signed in with google
       set({ isAuthenticated: true, isNewUser, isSigningIn: false });
     } catch (e) {
       error = "Failed to sign in";
@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isSigningIn: true, signInError: null, isNewUser });
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      // todo temporarily setting this to always be an existing user when signed in with discord
+      // TODO temporarily setting this to always be an existing user when signed in with discord
       set({ isAuthenticated: true, isNewUser, isSigningIn: false });
     } catch (e) {
       error = "Failed to sign in";

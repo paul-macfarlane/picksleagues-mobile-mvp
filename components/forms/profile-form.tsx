@@ -1,13 +1,25 @@
 import React from "react";
 import { View } from "react-native";
 import { Button } from "~/components/ui/button";
-import {
-  CheckUsernameAvailabilityFunction,
-  Profile,
-} from "~/lib/stores/profile";
+import { Profile } from "~/lib/stores/profile";
 import { cn } from "~/lib/utils";
 import { Text } from "~/components/ui/text";
 import { Input } from "~/components/ui/input";
+import { z } from "zod";
+
+const profileSchema = z.object({
+  username: z
+    .string()
+    .min(8, "Username must be at least 8 characters")
+    .max(20, "Username must be at most 20 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  profilePicUrl: z
+    .string()
+    .url("Must be a valid URL")
+    .optional()
+    .or(z.literal("")),
+});
 
 type ProfileFormProps = {
   initialValues: Partial<Profile>;
@@ -15,7 +27,6 @@ type ProfileFormProps = {
   isSubmitting: boolean;
   submitError: string | null;
   submitLabel: string;
-  checkUsernameAvailable: CheckUsernameAvailabilityFunction;
 };
 
 export function ProfileForm({
@@ -24,7 +35,6 @@ export function ProfileForm({
   isSubmitting,
   submitLabel,
   submitError,
-  checkUsernameAvailable,
 }: ProfileFormProps) {
   const [values, setValues] = React.useState<Profile>({
     username: "",
@@ -36,44 +46,21 @@ export function ProfileForm({
   const [errors, setErrors] = React.useState<
     Partial<Record<keyof Profile, string>>
   >({});
-  const [isCheckingUsername, setIsCheckingUsername] = React.useState(false);
 
-  // todo will be replaced by zod schema validation
-  const validateUsername = async (username: string) => {
-    if (username === initialValues.username) return true;
-    if (username.length < 8) return "Username must be at least 8 characters";
-    if (username.length > 20) return "Username must be at most 20 characters";
-    if (!/^[a-zA-Z0-9_-]+$/.test(username))
-      return "Username can only contain letters, numbers, underscores, and hyphens";
-
-    setIsCheckingUsername(true);
-    const isAvailable = await checkUsernameAvailable(username);
-    setIsCheckingUsername(false);
-    return isAvailable ? true : "Username is already taken";
-  };
-
-  // todo update validation to use zod instead
   const handleSubmit = async () => {
-    const newErrors: typeof errors = {};
+    const result = profileSchema.safeParse(values);
 
-    // Validate required fields
-    if (!values.username) newErrors.username = "Username is required";
-    if (!values.firstName) newErrors.firstName = "First name is required";
-    if (!values.lastName) newErrors.lastName = "Last name is required";
-
-    // Validate username format
-    if (values.username) {
-      const usernameValidation = await validateUsername(values.username);
-      if (typeof usernameValidation === "string") {
-        newErrors.username = usernameValidation;
-      }
+    if (!result.success) {
+      const formattedErrors: typeof errors = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof Profile;
+        formattedErrors[path] = issue.message;
+      });
+      setErrors(formattedErrors);
+      return;
     }
 
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      await onSubmit(values);
-    }
+    await onSubmit(result.data);
   };
 
   const handleChange = (field: keyof Profile) => (text: string) => {
@@ -95,11 +82,6 @@ export function ProfileForm({
         />
         {errors.username && (
           <Text className="text-sm text-destructive">{errors.username}</Text>
-        )}
-        {isCheckingUsername && (
-          <Text className="text-sm text-muted-foreground">
-            Checking username availability...
-          </Text>
         )}
       </View>
 
@@ -144,14 +126,18 @@ export function ProfileForm({
           value={values.profilePicUrl}
           onChangeText={handleChange("profilePicUrl")}
           placeholder="Enter profile picture URL"
+          className={cn(
+            errors.profilePicUrl ? "border-destructive" : "focus:border-primary"
+          )}
         />
+        {errors.profilePicUrl && (
+          <Text className="text-sm text-destructive">
+            {errors.profilePicUrl}
+          </Text>
+        )}
       </View>
 
-      <Button
-        onPress={handleSubmit}
-        disabled={isSubmitting || isCheckingUsername}
-        className="w-full"
-      >
+      <Button onPress={handleSubmit} disabled={isSubmitting} className="w-full">
         <Text className="text-primary-foreground">
           {isSubmitting ? "Saving..." : submitLabel}
         </Text>
