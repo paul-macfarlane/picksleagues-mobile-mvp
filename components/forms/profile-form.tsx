@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 import { Text } from "~/components/ui/text";
 import { Input } from "~/components/ui/input";
 import { z } from "zod";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 const profileSchema = z.object({
   username: z
@@ -68,6 +69,16 @@ export function ProfileForm({
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  const getFallbackInitials = () => {
+    if (values.firstName && values.lastName) {
+      return `${values.firstName[0]}${values.lastName[0]}`.toUpperCase();
+    }
+    if (values.username) {
+      return values.username.slice(0, 2).toUpperCase();
+    }
+    return "?";
+  };
+
   return (
     <View className="flex flex-col gap-4 w-full">
       <View className="flex flex-col gap-1.5">
@@ -117,24 +128,38 @@ export function ProfileForm({
         )}
       </View>
 
-      {/* TODO need to preview image when entered */}
       <View className="flex flex-col gap-1.5">
         <Text className="text-sm font-medium text-foreground">
           Profile Picture URL (Optional)
         </Text>
-        <Input
-          value={values.profilePicUrl}
-          onChangeText={handleChange("profilePicUrl")}
-          placeholder="Enter profile picture URL"
-          className={cn(
-            errors.profilePicUrl ? "border-destructive" : "focus:border-primary"
-          )}
-        />
-        {errors.profilePicUrl && (
-          <Text className="text-sm text-destructive">
-            {errors.profilePicUrl}
-          </Text>
-        )}
+        <View className="flex flex-row items-center gap-4">
+          <Avatar
+            alt={`${values.firstName} ${values.lastName}'s profile picture`}
+            className="h-16 w-16"
+          >
+            <AvatarImage source={{ uri: values.profilePicUrl }} />
+            <AvatarFallback>
+              <Text className="text-lg">{getFallbackInitials()}</Text>
+            </AvatarFallback>
+          </Avatar>
+          <View className="flex-1">
+            <Input
+              value={values.profilePicUrl}
+              onChangeText={handleChange("profilePicUrl")}
+              placeholder="Enter profile picture URL"
+              className={cn(
+                errors.profilePicUrl
+                  ? "border-destructive"
+                  : "focus:border-primary"
+              )}
+            />
+            {errors.profilePicUrl && (
+              <Text className="text-sm text-destructive">
+                {errors.profilePicUrl}
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
 
       <Button onPress={handleSubmit} disabled={isSubmitting} className="w-full">
