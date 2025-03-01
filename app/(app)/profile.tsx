@@ -8,8 +8,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ProfileScreen() {
   const {
     profile,
-    isLoading,
+    isFetching,
+    fetchError,
     fetchProfile,
+    isUpdating,
+    updateError,
     updateProfile,
     checkUsernameAvailable,
   } = useProfileStore();
@@ -19,12 +22,25 @@ export default function ProfileScreen() {
   }, []);
 
   const handleSubmit = async (updatedProfile: Profile) => {
-    await updateProfile(updatedProfile);
+    const { error } = await updateProfile(updatedProfile);
+    if (error) {
+      // todo error is handling within form, decide if that is what is desired
+      console.error(`error updating profile: ${error}`);
+      return;
+    }
+
+    // todo toast success
+    console.log("updated profile successfully", updatedProfile);
   };
 
   // todo add loading state using ~/components/ui/skeleton
-  if (!profile) return null;
+  if (isFetching) return null;
 
+  // todo add error state handling
+  if (fetchError || !profile) return null;
+
+  // todo this top setup could be replaced by a single page between this profile and setup profile
+  // only difference is that this one also checks if the user is new and replaces route instead of pushing
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-1 bg-background p-4">
@@ -41,7 +57,8 @@ export default function ProfileScreen() {
           <ProfileForm
             initialValues={profile}
             onSubmit={handleSubmit}
-            isLoading={isLoading}
+            submitError={updateError}
+            isSubmitting={isUpdating}
             submitLabel="Save Changes"
             checkUsernameAvailable={checkUsernameAvailable}
           />

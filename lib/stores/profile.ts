@@ -7,13 +7,44 @@ export type Profile = {
   profilePicUrl?: string;
 };
 
+export type FetchProfileResponse = {
+  profile: Profile | null;
+  error: string | null;
+};
+
+export type FetchProfileFunction = () => Promise<FetchProfileResponse>;
+
+export type UpdateProfileResponse = {
+  error: string | null;
+};
+
+export type UpdateProfileFunction = (
+  profile: Profile
+) => Promise<UpdateProfileResponse>;
+
+export type CheckUsernameAvailabilityResponse = {
+  available: boolean;
+  error: string | null;
+};
+
+export type CheckUsernameAvailabilityFunction = (
+  username: string
+) => Promise<CheckUsernameAvailabilityResponse>;
+
 type ProfileState = {
   profile: Profile | null;
-  isLoading: boolean;
-  error: string | null;
-  fetchProfile: () => Promise<void>;
-  updateProfile: (profile: Profile) => Promise<void>;
-  checkUsernameAvailable: (username: string) => Promise<boolean>;
+
+  isFetching: boolean;
+  fetchError: string | null;
+  fetchProfile: FetchProfileFunction;
+
+  isUpdating: boolean;
+  updateError: string | null;
+  updateProfile: UpdateProfileFunction;
+
+  isCheckingUsername: boolean;
+  checkUsernameError: string | null;
+  checkUsernameAvailable: CheckUsernameAvailabilityFunction;
 };
 
 const mockOAuthProfile = {
@@ -25,35 +56,58 @@ const mockOAuthProfile = {
 
 export const useProfileStore = create<ProfileState>((set) => ({
   profile: null,
-  isLoading: false,
-  error: null,
-
+  isFetching: false,
+  fetchError: null,
   fetchProfile: async () => {
-    set({ isLoading: true, error: null });
+    let profile = null;
+    let error = null;
+    set({ isFetching: true, fetchError: null });
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
       set({ profile: mockOAuthProfile });
-    } catch (error) {
-      set({ error: "Failed to fetch profile" });
+      profile = mockOAuthProfile;
+    } catch (e) {
+      error = "Failed to fetch profile";
+      set({ fetchError: error });
     } finally {
-      set({ isLoading: false });
+      set({ isFetching: false });
+      return { profile, error };
     }
   },
 
+  isUpdating: false,
+  updateError: null,
   updateProfile: async (profile: Profile) => {
-    set({ isLoading: true, error: null });
+    let error: string | null = null;
+    set({ isUpdating: true, updateError: null });
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       set({ profile });
-    } catch (error) {
-      set({ error: "Failed to update profile" });
+    } catch (e) {
+      error = "Failed to update profile";
+      set({ updateError: error });
     } finally {
-      set({ isLoading: false });
+      set({ isUpdating: false });
+      return { error };
     }
   },
 
+  isCheckingUsername: false,
+  checkUsernameError: null,
   checkUsernameAvailable: async (username: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return !["taken", "admin", "test"].includes(username.toLowerCase());
+    let available = false;
+    let error: string | null = null;
+    set({ isCheckingUsername: true, checkUsernameError: null });
+
+    try {
+      available = !["taken", "admin", "test"].includes(username.toLowerCase());
+      set({ checkUsernameError: null });
+    } catch (e) {
+      error = "Failed to check username";
+      set({ checkUsernameError: error });
+    } finally {
+      set({ isCheckingUsername: false });
+      return { available, error };
+    }
   },
 }));

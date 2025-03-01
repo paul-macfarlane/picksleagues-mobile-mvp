@@ -10,28 +10,40 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function SetupProfileScreen() {
   const router = useRouter();
   const {
+    isFetching,
+    fetchError,
     profile,
-    isLoading,
     fetchProfile,
     updateProfile,
     checkUsernameAvailable,
+    isUpdating,
+    updateError,
   } = useProfileStore();
   const { isNewUser } = useAuthStore();
 
   useEffect(() => {
     if (!isNewUser) {
-      router.replace("/");
+      router.replace("/(app)/home");
     }
     fetchProfile();
   }, [isNewUser]);
 
   const handleSubmit = async (updatedProfile: Profile) => {
-    await updateProfile(updatedProfile);
-    // this is not routing the user to home page for some reason
-    router.replace("/");
+    const { error } = await updateProfile(updatedProfile);
+    if (error) {
+      // todo error is handling within form, decide if that is what is desired
+      console.error(`error updating profile: ${error}`);
+      return;
+    }
+
+    router.replace("/(app)/home");
   };
 
-  if (!profile) return null;
+  // todo add loading state using ~/components/ui/skeleton
+  if (isFetching) return null;
+
+  // todo handle error state
+  if (fetchError || !profile) return null;
 
   // todo this top setup could be replaced by a single page between this setup-profile and profile
   // only difference is that this one also checks if the user is new and replaces route instead of pushing
@@ -51,8 +63,9 @@ export default function SetupProfileScreen() {
           <ProfileForm
             initialValues={profile}
             onSubmit={handleSubmit}
-            isLoading={isLoading}
             submitLabel="Complete Setup"
+            isSubmitting={isUpdating}
+            submitError={updateError}
             checkUsernameAvailable={checkUsernameAvailable}
           />
         </View>

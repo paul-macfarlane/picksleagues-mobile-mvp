@@ -1,19 +1,24 @@
-// todo replace Text with Text from ~/components/ui
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuthStore } from "~/lib/stores/auth";
+import { SignInFunction, useAuthStore } from "~/lib/stores/auth";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "~/components/ui/text";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signInWithGoogle, signInWithDiscord, isNewUser } = useAuthStore();
+  const { signInWithGoogle, signInWithDiscord, isSigningIn } = useAuthStore();
 
-  const handleSignIn = async (signInMethod: () => Promise<void>) => {
-    await signInMethod();
-    // todo has compile error right now but might just need to run the app
-    router.replace(isNewUser ? "/(auth)/setup-profile" : "/");
+  const handleSignIn = async (signInMethod: SignInFunction) => {
+    const { error, isNewUser } = await signInMethod();
+    if (error) {
+      // todo handle/use error
+      console.error(`error signing in: ${error}`);
+      return;
+    }
+
+    router.replace(isNewUser ? "/(app)/setup-profile" : "/(app)/home");
   };
 
   return (
@@ -32,14 +37,16 @@ export default function SignInScreen() {
           <View className="flex flex-col gap-4">
             <Button
               onPress={() => handleSignIn(signInWithGoogle)}
-              className="w-full bg-[#4285F4] dark:bg-[#3B3F4E]"
+              className="w-full bg-[#4285F4]"
+              disabled={isSigningIn}
             >
               <Text className="text-white">Continue with Google</Text>
             </Button>
 
             <Button
               onPress={() => handleSignIn(signInWithDiscord)}
-              className="w-full bg-[#5865F2] dark:bg-[#5865F2]"
+              className="w-full bg-[#5865F2]"
+              disabled={isSigningIn}
             >
               <Text className="text-white">Continue with Discord</Text>
             </Button>

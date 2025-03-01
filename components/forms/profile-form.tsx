@@ -1,7 +1,10 @@
 import React from "react";
 import { View } from "react-native";
 import { Button } from "~/components/ui/button";
-import { Profile } from "~/lib/stores/profile";
+import {
+  CheckUsernameAvailabilityFunction,
+  Profile,
+} from "~/lib/stores/profile";
 import { cn } from "~/lib/utils";
 import { Text } from "~/components/ui/text";
 import { Input } from "~/components/ui/input";
@@ -9,16 +12,18 @@ import { Input } from "~/components/ui/input";
 type ProfileFormProps = {
   initialValues: Partial<Profile>;
   onSubmit: (profile: Profile) => Promise<void>;
-  isLoading: boolean;
+  isSubmitting: boolean;
+  submitError: string | null;
   submitLabel: string;
-  checkUsernameAvailable: (username: string) => Promise<boolean>;
+  checkUsernameAvailable: CheckUsernameAvailabilityFunction;
 };
 
 export function ProfileForm({
   initialValues,
   onSubmit,
-  isLoading,
+  isSubmitting,
   submitLabel,
+  submitError,
   checkUsernameAvailable,
 }: ProfileFormProps) {
   const [values, setValues] = React.useState<Profile>({
@@ -130,6 +135,7 @@ export function ProfileForm({
         )}
       </View>
 
+      {/* TODO need to preview image when entered */}
       <View className="flex flex-col gap-1.5">
         <Text className="text-sm font-medium text-foreground">
           Profile Picture URL (Optional)
@@ -143,11 +149,17 @@ export function ProfileForm({
 
       <Button
         onPress={handleSubmit}
-        disabled={isLoading || isCheckingUsername}
+        disabled={isSubmitting || isCheckingUsername}
         className="w-full"
       >
-        <Text className="text-primary-foreground">{submitLabel}</Text>
+        <Text className="text-primary-foreground">
+          {isSubmitting ? "Saving..." : submitLabel}
+        </Text>
       </Button>
+
+      {submitError && (
+        <Text className="text-sm text-destructive">{submitError}</Text>
+      )}
     </View>
   );
 }
