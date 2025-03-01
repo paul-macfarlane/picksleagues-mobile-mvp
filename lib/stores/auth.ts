@@ -34,10 +34,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   isSigningIn: false,
   signInError: null,
   signInWithGoogle: async () => {
-    // Mock Google sign in
     let error: string | null = null;
     let isNewUser = false;
-    set({ isSigningIn: true, signInError: null });
+    set({ isSigningIn: true, signInError: null, isNewUser });
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       isNewUser = true;
@@ -52,10 +51,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   signInWithDiscord: async () => {
-    // Mock Discord sign in
     let error: string | null = null;
     let isNewUser = false;
-    set({ isSigningIn: true, signInError: null });
+    set({ isSigningIn: true, signInError: null, isNewUser });
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       // todo temporarily setting this to always be an existing user when signed in with discord
@@ -73,16 +71,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOutError: null,
   signOut: async () => {
     let error: string | null = null;
-    let isNewUser = false;
     set({ isSigningOut: true, signOutError: null });
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      set({ isAuthenticated: false, isNewUser });
+      set({ isAuthenticated: false });
     } catch (e) {
       error = "Failed to sign out";
       set({ signOutError: error });
     } finally {
-      set({ isSigningOut: false, isNewUser });
+      set({ isSigningOut: false });
       return { error };
     }
   },

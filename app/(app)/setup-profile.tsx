@@ -31,8 +31,7 @@ export default function SetupProfileScreen() {
   const handleSubmit = async (updatedProfile: Profile) => {
     const { error } = await updateProfile(updatedProfile);
     if (error) {
-      // todo error is handling within form, decide if that is what is desired
-      console.error(`error updating profile: ${error}`);
+      // error is rendered within form
       return;
     }
 
@@ -42,33 +41,34 @@ export default function SetupProfileScreen() {
   // todo add loading state using ~/components/ui/skeleton
   if (isFetching) return null;
 
-  // todo handle error state
-  if (fetchError || !profile) return null;
-
-  // todo this top setup could be replaced by a single page between this setup-profile and profile
-  // only difference is that this one also checks if the user is new and replaces route instead of pushing
   return (
     <SafeAreaView className="flex-1">
       <View className="flex-1 bg-background p-4">
-        <View className="max-w-sm mx-auto w-full flex flex-col gap-6">
-          <View className="flex flex-col gap-2">
-            <Text className="text-2xl font-bold text-foreground">
-              Complete Your Profile
-            </Text>
-            <Text className="text-sm text-muted-foreground">
-              Set up your profile to start competing with friends
-            </Text>
-          </View>
+        {fetchError || !profile ? (
+          <Text className="text-destructive text-lg text-center">
+            Failed to fetch profile. Please try again later.
+          </Text>
+        ) : (
+          <View className="max-w-sm mx-auto w-full flex flex-col gap-6">
+            <View className="flex flex-col gap-2">
+              <Text className="text-2xl font-bold text-foreground">
+                Complete Your Profile
+              </Text>
+              <Text className="text-sm text-muted-foreground">
+                Set up your profile to start competing with friends
+              </Text>
+            </View>
 
-          <ProfileForm
-            initialValues={profile}
-            onSubmit={handleSubmit}
-            submitLabel="Complete Setup"
-            isSubmitting={isUpdating}
-            submitError={updateError}
-            checkUsernameAvailable={checkUsernameAvailable}
-          />
-        </View>
+            <ProfileForm
+              initialValues={profile}
+              onSubmit={handleSubmit}
+              submitLabel="Complete Setup"
+              isSubmitting={isUpdating}
+              submitError={updateError}
+              checkUsernameAvailable={checkUsernameAvailable}
+            />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

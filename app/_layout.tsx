@@ -15,7 +15,7 @@ import { useColorScheme } from "~/lib/useColorScheme";
 import { PortalHost } from "@rn-primitives/portal";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
+import Toast from "react-native-toast-message";
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
   colors: NAV_THEME.light,
@@ -59,6 +59,7 @@ export default function RootLayout() {
           }}
         />
         <PortalHost />
+        <Toast />
       </ThemeProvider>
     </SafeAreaProvider>
   );

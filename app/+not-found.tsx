@@ -13,7 +13,6 @@ export default function NotFoundScreen() {
         <Text className="text-xl font-semibold text-primary">
           This screen doesn't exist.
         </Text>
-
         <Link href="/(app)/home" asChild>
           <Button>
             <Text className="text-primary-foreground">Go to home screen</Text>

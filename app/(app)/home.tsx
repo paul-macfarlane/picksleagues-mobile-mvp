@@ -5,14 +5,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
-  const { signOut, isSigningOut } = useAuthStore();
+  const { signOut, isSigningOut, signOutError } = useAuthStore();
   const router = useRouter();
 
   const onSignOut = async () => {
     const { error } = await signOut();
     if (error) {
-      // todo handle error
-      console.error(`error signing out: ${error}`);
+      // error is rendered below in button
       return;
     }
 
@@ -28,6 +27,12 @@ export default function HomeScreen() {
         <Button onPress={onSignOut} disabled={isSigningOut}>
           <Text className="text-primary-foreground">Sign Out</Text>
         </Button>
+
+        {signOutError && (
+          <Text className="text-sm text-destructive-foreground">
+            {signOutError}
+          </Text>
+        )}
       </View>
     </SafeAreaView>
   );

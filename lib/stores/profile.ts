@@ -64,8 +64,8 @@ export const useProfileStore = create<ProfileState>((set) => ({
     set({ isFetching: true, fetchError: null });
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      set({ profile: mockOAuthProfile });
       profile = mockOAuthProfile;
+      set({ profile });
     } catch (e) {
       error = "Failed to fetch profile";
       set({ fetchError: error });
@@ -98,7 +98,6 @@ export const useProfileStore = create<ProfileState>((set) => ({
     let available = false;
     let error: string | null = null;
     set({ isCheckingUsername: true, checkUsernameError: null });
-
     try {
       available = !["taken", "admin", "test"].includes(username.toLowerCase());
       set({ checkUsernameError: null });

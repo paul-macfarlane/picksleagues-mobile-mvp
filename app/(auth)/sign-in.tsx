@@ -8,13 +8,13 @@ import { Text } from "~/components/ui/text";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signInWithGoogle, signInWithDiscord, isSigningIn } = useAuthStore();
+  const { signInWithGoogle, signInWithDiscord, isSigningIn, signInError } =
+    useAuthStore();
 
   const handleSignIn = async (signInMethod: SignInFunction) => {
     const { error, isNewUser } = await signInMethod();
     if (error) {
-      // todo handle/use error
-      console.error(`error signing in: ${error}`);
+      // error is rendered below in button
       return;
     }
 
@@ -50,6 +50,12 @@ export default function SignInScreen() {
             >
               <Text className="text-white">Continue with Discord</Text>
             </Button>
+
+            {signInError && (
+              <Text className="text-sm text-destructive-foreground">
+                {signInError}
+              </Text>
+            )}
           </View>
         </View>
       </View>
