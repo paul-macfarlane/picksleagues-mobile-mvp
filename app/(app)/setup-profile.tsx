@@ -18,7 +18,6 @@ export default function SetupProfileScreen() {
     isUpdating,
     updateError,
     updateProfile,
-    checkUsernameAvailable,
   } = useProfileStore();
   const { isNewUser } = useAuthStore();
 
@@ -67,7 +66,6 @@ export default function SetupProfileScreen() {
               submitError={updateError}
               isSubmitting={isUpdating}
               submitLabel="Complete Setup"
-              checkUsernameAvailable={checkUsernameAvailable}
             />
           </View>
         )}

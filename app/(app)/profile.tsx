@@ -16,7 +16,6 @@ export default function ProfileScreen() {
     isUpdating,
     updateError,
     updateProfile,
-    checkUsernameAvailable,
   } = useProfileStore();
 
   useEffect(() => {
@@ -64,7 +63,6 @@ export default function ProfileScreen() {
               submitError={updateError}
               isSubmitting={isUpdating}
               submitLabel="Save Changes"
-              checkUsernameAvailable={checkUsernameAvailable}
             />
           </View>
         )}
