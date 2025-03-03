@@ -1,4 +1,11 @@
 import { create } from "zustand";
+import {
+  clearAuthData,
+  getUserData,
+  initiateOAuthFlow,
+  isAuthenticated,
+  UserData,
+} from "~/lib/services/auth-service";
 
 export type SignInResponse = {
   error: string | null;
@@ -16,6 +23,7 @@ export type SignOutFunction = () => Promise<SignOutResponse>;
 type AuthState = {
   isAuthenticated: boolean;
   isNewUser: boolean;
+  userData: UserData | null;
 
   isSigningIn: boolean;
   signInError: string | null;
@@ -25,11 +33,14 @@ type AuthState = {
   isSigningOut: boolean;
   signOutError: string | null;
   signOut: SignOutFunction;
+
+  initializeAuth: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isNewUser: false,
+  userData: null,
 
   isSigningIn: false,
   signInError: null,
@@ -37,32 +48,44 @@ export const useAuthStore = create<AuthState>((set) => ({
     let error: string | null = null;
     let isNewUser = false;
     set({ isSigningIn: true, signInError: null, isNewUser });
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      isNewUser = true;
-      // TODO temporarily setting this to always be a new user when signed in with google
-      set({ isAuthenticated: true, isNewUser, isSigningIn: false });
+      const authResponse = await initiateOAuthFlow("google");
+      isNewUser = authResponse.isNewUser;
+
+      set({
+        isAuthenticated: true,
+        isNewUser,
+        userData: authResponse.userData,
+      });
     } catch (e) {
-      error = "Failed to sign in";
+      error = e instanceof Error ? e.message : "Failed to sign in with Google";
       set({ signInError: error });
     } finally {
-      set({ isSigningIn: false, isNewUser });
+      set({ isSigningIn: false });
       return { error, isNewUser };
     }
   },
+
   signInWithDiscord: async () => {
     let error: string | null = null;
     let isNewUser = false;
     set({ isSigningIn: true, signInError: null, isNewUser });
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // TODO temporarily setting this to always be an existing user when signed in with discord
-      set({ isAuthenticated: true, isNewUser, isSigningIn: false });
+      const authResponse = await initiateOAuthFlow("discord");
+      isNewUser = authResponse.isNewUser;
+
+      set({
+        isAuthenticated: true,
+        isNewUser,
+        userData: authResponse.userData,
+      });
     } catch (e) {
-      error = "Failed to sign in";
+      error = e instanceof Error ? e.message : "Failed to sign in with Discord";
       set({ signInError: error });
     } finally {
-      set({ isSigningIn: false, isNewUser });
+      set({ isSigningIn: false });
       return { error, isNewUser };
     }
   },
@@ -72,15 +95,41 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     let error: string | null = null;
     set({ isSigningOut: true, signOutError: null });
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      set({ isAuthenticated: false });
+      await clearAuthData();
+      set({
+        isAuthenticated: false,
+        userData: null,
+        isNewUser: false,
+      });
     } catch (e) {
-      error = "Failed to sign out";
+      error = e instanceof Error ? e.message : "Failed to sign out";
       set({ signOutError: error });
     } finally {
       set({ isSigningOut: false });
       return { error };
+    }
+  },
+
+  initializeAuth: async () => {
+    try {
+      const isAuth = await isAuthenticated();
+      const userData = await getUserData();
+
+      set({
+        isAuthenticated: isAuth,
+        userData: userData,
+        isNewUser: false, // We assume existing user on app restart
+      });
+    } catch (error) {
+      console.error("Failed to initialize auth state:", error);
+      // If initialization fails, we assume user is not authenticated
+      set({
+        isAuthenticated: false,
+        userData: null,
+        isNewUser: false,
+      });
     }
   },
 }));
