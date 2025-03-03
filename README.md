@@ -17,4 +17,4 @@ npm install
 npm run dev
 ```
 
-4. Open the app in Expo Go by scanning the QR code that appears in your terminal from your phone. You can also view on web at http://localhost:8081, but not that it won't reflect exactly how the app would behave as an iOS or Android app.
+4. Open the app in Expo Go by scanning the QR code that appears in your terminal from your phone.

@@ -16,6 +16,11 @@ import { PortalHost } from "@rn-primitives/portal";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { useAuthStore } from "~/lib/stores/auth";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
+
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
   colors: NAV_THEME.light,
@@ -31,6 +36,8 @@ export default function RootLayout() {
   const hasMounted = React.useRef(false);
   const { colorScheme, isDarkColorScheme } = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
+  const [isAuthInitialized, setIsAuthInitialized] = React.useState(false);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   useIsomorphicLayoutEffect(() => {
     if (hasMounted.current) {
@@ -43,9 +50,16 @@ export default function RootLayout() {
     setAndroidNavigationBar(colorScheme);
     setIsColorSchemeLoaded(true);
     hasMounted.current = true;
+
+    const initAuth = async () => {
+      await initializeAuth();
+      setIsAuthInitialized(true);
+    };
+
+    initAuth();
   }, []);
 
-  if (!isColorSchemeLoaded) {
+  if (!isColorSchemeLoaded || !isAuthInitialized) {
     return null;
   }
 

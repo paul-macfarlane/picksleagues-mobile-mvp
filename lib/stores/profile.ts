@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { fetchWithAuth } from "~/lib/utils/api";
+import { getUserData, saveUserData } from "~/lib/services/auth-service";
 
 export type Profile = {
   username: string;
@@ -22,15 +24,6 @@ export type UpdateProfileFunction = (
   profile: Profile
 ) => Promise<UpdateProfileResponse>;
 
-export type CheckUsernameAvailabilityResponse = {
-  available: boolean;
-  error: string | null;
-};
-
-export type CheckUsernameAvailabilityFunction = (
-  username: string
-) => Promise<CheckUsernameAvailabilityResponse>;
-
 type ProfileState = {
   profile: Profile | null;
 
@@ -43,12 +36,7 @@ type ProfileState = {
   updateProfile: UpdateProfileFunction;
 };
 
-const mockOAuthProfile = {
-  username: "johndoe123",
-  firstName: "John",
-  lastName: "Doe",
-  profilePicUrl: "https://example.com/profile.jpg",
-};
+const PROFILE_ENDPOINT = "/me";
 
 export const useProfileStore = create<ProfileState>((set) => ({
   profile: null,
@@ -58,12 +46,35 @@ export const useProfileStore = create<ProfileState>((set) => ({
     let profile = null;
     let error = null;
     set({ isFetching: true, fetchError: null });
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      profile = mockOAuthProfile;
-      set({ profile });
+      const userData = await getUserData();
+
+      if (
+        userData &&
+        userData.username &&
+        userData.firstName &&
+        userData.lastName
+      ) {
+        profile = {
+          username: userData.username,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profilePicUrl: userData.image ?? undefined,
+        };
+        set({ profile });
+      } else {
+        const response = await fetchWithAuth(PROFILE_ENDPOINT);
+        if (!response.ok) {
+          throw new Error("Failed to fetch profile");
+        }
+
+        const data = await response.json();
+        profile = data.profile;
+        set({ profile });
+      }
     } catch (e) {
-      error = "Failed to fetch profile";
+      error = e instanceof Error ? e.message : "Failed to fetch profile";
       set({ fetchError: error });
     } finally {
       set({ isFetching: false });
@@ -76,11 +87,31 @@ export const useProfileStore = create<ProfileState>((set) => ({
   updateProfile: async (profile: Profile) => {
     let error: string | null = null;
     set({ isUpdating: true, updateError: null });
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetchWithAuth(PROFILE_ENDPOINT, {
+        method: "PUT",
+        body: JSON.stringify(profile),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
       set({ profile });
+
+      const userData = await getUserData();
+      if (userData) {
+        await saveUserData({
+          ...userData,
+          username: profile.username,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          image: profile.profilePicUrl ?? null,
+        });
+      }
     } catch (e) {
-      error = "Failed to update profile";
+      error = e instanceof Error ? e.message : "Failed to update profile";
       set({ updateError: error });
     } finally {
       set({ isUpdating: false });
